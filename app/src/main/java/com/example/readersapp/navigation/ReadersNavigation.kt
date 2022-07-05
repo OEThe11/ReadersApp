@@ -21,7 +21,7 @@ fun ReadersNavigation() {
             ReadersSplashScreen(navController = navController)
         }
 
-        composable(ReadersScreens.ReadersHomeScreen.name){
+        composable(ReadersScreens.HomeScreen.name){
             HomeScreen(navController = navController)
         }
 

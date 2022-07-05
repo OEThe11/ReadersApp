@@ -40,9 +40,11 @@ import com.example.readersapp.R
 import com.example.readersapp.components.EmailInput
 import com.example.readersapp.components.PasswordInput
 import com.example.readersapp.components.TitleHeader
+import androidx.lifecycle.viewmodel.compose.*
+import com.example.readersapp.navigation.ReadersScreens
 
 @Composable
-fun MainLogin(navController: NavHostController) {
+fun MainLogin(navController: NavHostController, viewModel: MainLoginViewModel = viewModel()) {
     val showLoginForm = rememberSaveable {
         mutableStateOf(true)
     }
@@ -57,10 +59,16 @@ fun MainLogin(navController: NavHostController) {
             if (showLoginForm.value) {
                 UserForm(loading = false, isCreateAccount = false) { email, password ->
                     //User login
+                    viewModel.signInWithEP(email = email, password = password){
+                        navController.navigate(ReadersScreens.HomeScreen.name)
+                    }
                 }
             } else {
                 UserForm(loading = false, isCreateAccount = true) { email, password ->
                     //Create Account
+                    viewModel.createUserWithEP(email = email, password = password){
+                        navController.navigate(ReadersScreens.HomeScreen.name)
+                    }
                 }
             }
 

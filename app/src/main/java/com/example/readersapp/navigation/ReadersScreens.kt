@@ -4,7 +4,7 @@ enum class ReadersScreens {
     SplashScreen,
     LoginScreen,
     CreateAccountScreen,//*
-    ReadersHomeScreen,
+    HomeScreen,
     SearchScreen,
     DetailScreen,
     UpdateScreen,
@@ -16,12 +16,12 @@ enum class ReadersScreens {
             SplashScreen.name -> SplashScreen
             LoginScreen.name -> LoginScreen
             CreateAccountScreen.name -> CreateAccountScreen
-            ReadersHomeScreen.name -> ReadersHomeScreen
+            HomeScreen.name -> HomeScreen
             SearchScreen.name -> SearchScreen
             DetailScreen.name -> DetailScreen
             UpdateScreen.name -> UpdateScreen
             ReadersStatsScreen.name -> ReadersStatsScreen
-            null -> ReadersHomeScreen
+            null -> HomeScreen
             else -> throw IllegalArgumentException("Route $route is not available")
         }
     }
