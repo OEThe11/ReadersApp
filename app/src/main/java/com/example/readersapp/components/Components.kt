@@ -1,5 +1,6 @@
 package com.example.readersapp.components
 
+import android.graphics.drawable.Icon
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -17,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
@@ -247,8 +249,10 @@ fun RoundedButton(
 @Composable
 fun ReadersAppBar(
     title: String,
+    icon: ImageVector? = null,
     showProfile: Boolean = true,
-    navController: NavController
+    navController: NavController,
+    onBackArrowClicked: () -> Unit = {}
 ){
 
     TopAppBar(title = {
@@ -260,6 +264,12 @@ fun ReadersAppBar(
                         .clip(RoundedCornerShape(12.dp))
                         .scale(0.9f))
             }
+            if (icon != null){
+                Icon(imageVector = icon, contentDescription = "arrow back",
+                    tint = Color.Red.copy(alpha = 0.7f),
+                    modifier = Modifier.clickable { onBackArrowClicked.invoke() })
+            }
+            Spacer(modifier = Modifier.width(5.dp))
             Text(text = title,
                 color = Color.Red.copy(alpha = 0.7f),
                 style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 20.sp))
@@ -275,9 +285,12 @@ fun ReadersAppBar(
                     navController.navigate(ReadersScreens.LoginScreen.name)
                 }
             }) {
-                Icon(imageVector = Icons.Default.Logout,
-                    contentDescription = "Logout",
-                    tint = Color.Green.copy(alpha = 0.5f))
+                if(showProfile) Row() {
+                    Icon(imageVector = Icons.Default.Logout,
+                        contentDescription = "Logout",
+                        tint = Color.Green.copy(alpha = 0.5f))
+                }else Box(modifier = Modifier)
+
 
             }
         },

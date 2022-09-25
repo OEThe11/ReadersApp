@@ -42,7 +42,9 @@ fun HomeScreen(navController: NavController = NavController(LocalContext.current
             ReadersAppBar(title = "Readers Unite", navController = navController)
         },
             floatingActionButton = {
-                FABContent{}
+                FABContent{
+                    navController.navigate(ReadersScreens.SearchScreen.name)
+                }
             }) {
             //content
             Surface(modifier = Modifier.fillMaxSize()) {
