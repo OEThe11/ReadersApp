@@ -1,6 +1,5 @@
 package com.example.readersapp.screens.search
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -20,7 +19,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -28,7 +26,7 @@ import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.example.readersapp.components.InputField
 import com.example.readersapp.components.ReadersAppBar
-import com.example.readersapp.model.MBook
+import com.example.readersapp.model.Item
 import com.example.readersapp.navigation.ReadersScreens
 
 
@@ -48,12 +46,11 @@ fun SearchScreen(navController: NavController, viewModel: SearchViewModel = hilt
                 SearchForm(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
-                    viewModel = viewModel
+                        .padding(16.dp)
                 ){query ->
-                    viewModel.searchBooks(query)
+                    viewModel.searchBooks(query = query)
                 }
-                BookList(navController = navController, viewModel = viewModel)
+                BookList(navController = navController)
             }
 
         }
@@ -62,22 +59,18 @@ fun SearchScreen(navController: NavController, viewModel: SearchViewModel = hilt
 
 
 @Composable
-fun BookList(navController: NavController, viewModel: SearchViewModel){
+fun BookList(navController: NavController, viewModel: SearchViewModel = hiltViewModel()){
 
-    if (viewModel.listOfBooks.value.loading == true){
-        Log.d("BOO", "BookList: loading...")
-    }
-    else{
-        Log.d("BOO", "BookList: ${viewModel.listOfBooks.value.data}")
-    }
 
-    val listOfBooks = listOf(
-        MBook("dggbr", "Hello, it's me", "Someone", null),
-        MBook("dfhyr", "He, it's me", "Someone", null),
-        MBook("dgregr", "Hello, me", "Someone", null),
-        MBook("dxggw", "Hello, it's me", "Someone", null),
-        MBook("vufhy", "Hello, ite", "Someone", null)
-    )
+    val listOfBooks = viewModel.list
+
+//        listOf(
+//        MBook("dggbr", "Hello, it's me", "Someone", null),
+//        MBook("dfhyr", "He, it's me", "Someone", null),
+//        MBook("dgregr", "Hello, me", "Someone", null),
+//        MBook("dxggw", "Hello, it's me", "Someone", null),
+//        MBook("vufhy", "Hello, ite", "Someone", null)
+//    )
 
 
     LazyColumn(modifier = Modifier.fillMaxSize(),
@@ -91,7 +84,7 @@ fun BookList(navController: NavController, viewModel: SearchViewModel){
 
 
 @Composable
-fun ListContainer(book: MBook, navController: NavController = NavController(LocalContext.current)) {
+fun ListContainer(book: Item, navController: NavController = NavController(LocalContext.current)) {
         Card(modifier = Modifier
             .fillMaxWidth()
             .height(140.dp)
@@ -108,16 +101,16 @@ fun ListContainer(book: MBook, navController: NavController = NavController(Loca
                 Column(modifier = Modifier
                     .padding(start = 5.dp, top = 4.dp)
                     .fillMaxHeight()) {
-                    Text(text = book.title.toString(),
+                    Text(text = book.volumeInfo.title,
                         fontSize = 25.sp,
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.h3
                         )
-                    Text(text = "Author: ${book.authors}",
+                    Text(text = "Author: ${book.volumeInfo.authors}",
                         fontSize = 15.sp,
                         fontStyle = FontStyle.Italic
                         )
-                    Text(text = "Notes: ${book.notes}",
+                    Text(text = "Notes: ${book.volumeInfo.subtitle}",
                         fontSize = 15.sp,
                         fontStyle = FontStyle.Italic
                     )
@@ -137,7 +130,6 @@ fun ListContainer(book: MBook, navController: NavController = NavController(Loca
 @Composable
 fun SearchForm(
     modifier: Modifier = Modifier,
-    viewModel: SearchViewModel,
     loading: Boolean = false,
     hint: String = "Search",
     onSearch: (String) -> Unit = {}
