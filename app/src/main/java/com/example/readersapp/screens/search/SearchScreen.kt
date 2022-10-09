@@ -15,15 +15,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
+import com.example.readersapp.R
 import com.example.readersapp.components.InputField
 import com.example.readersapp.components.ReadersAppBar
 import com.example.readersapp.model.Item
@@ -61,24 +64,18 @@ fun SearchScreen(navController: NavController, viewModel: SearchViewModel = hilt
 @Composable
 fun BookList(navController: NavController, viewModel: SearchViewModel = hiltViewModel()){
 
-
     val listOfBooks = viewModel.list
-
-//        listOf(
-//        MBook("dggbr", "Hello, it's me", "Someone", null),
-//        MBook("dfhyr", "He, it's me", "Someone", null),
-//        MBook("dgregr", "Hello, me", "Someone", null),
-//        MBook("dxggw", "Hello, it's me", "Someone", null),
-//        MBook("vufhy", "Hello, ite", "Someone", null)
-//    )
-
-
-    LazyColumn(modifier = Modifier.fillMaxSize(),
+    if (viewModel.isLoading){
+        LinearProgressIndicator()
+    }else{
+        LazyColumn(modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(8.dp)){
-         items(items = listOfBooks){ book ->
-             ListContainer(book, navController)
-         }
+            items(items = listOfBooks){ book ->
+                ListContainer(book, navController)
+            }
+        }
     }
+
 }
 
 
@@ -92,29 +89,33 @@ fun ListContainer(book: Item, navController: NavController = NavController(Local
             .clickable { }) {
             Row(modifier = Modifier.padding(2.dp),
                 horizontalArrangement = Arrangement.Start) {
-                Image(painter = rememberImagePainter(data = "http://books.google.com/books/content?id=JGH0DwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"),
+                Image(painter = rememberImagePainter(data = book.volumeInfo.imageLinks.smallThumbnail.ifEmpty { R.drawable.error_pic }),
                     contentDescription = "Photo of Book",
                 modifier = Modifier
 //                    .padding(4.dp)
                     .width(100.dp)
-                    .height(140.dp))
+                    .height(140.dp),
+                contentScale = ContentScale.FillBounds)
                 Column(modifier = Modifier
                     .padding(start = 5.dp, top = 4.dp)
                     .fillMaxHeight()) {
                     Text(text = book.volumeInfo.title,
-                        fontSize = 25.sp,
+                        overflow = TextOverflow.Clip,
+                        fontSize = 17.sp,
                         fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.h3
+                        style = MaterialTheme.typography.h4
                         )
                     Text(text = "Author: ${book.volumeInfo.authors}",
+                        overflow = TextOverflow.Clip,
                         fontSize = 15.sp,
                         fontStyle = FontStyle.Italic
                         )
-                    Text(text = "Notes: ${book.volumeInfo.subtitle}",
+                    Text(text = "Date: ${book.volumeInfo.publishedDate}",
+                        overflow = TextOverflow.Clip,
                         fontSize = 15.sp,
                         fontStyle = FontStyle.Italic
                     )
-                    Text(text = "[Computers]",
+                    Text(text = "${book.volumeInfo.categories}",
                         fontSize = 15.sp,
                         fontStyle = FontStyle.Italic
                     )
