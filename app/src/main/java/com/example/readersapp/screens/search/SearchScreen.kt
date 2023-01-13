@@ -66,8 +66,12 @@ fun BookList(navController: NavController, viewModel: SearchViewModel = hiltView
 
     val listOfBooks = viewModel.list
     if (viewModel.isLoading){
-        LinearProgressIndicator()
-    }else{
+        Row(horizontalArrangement = Arrangement.SpaceBetween) {
+            LinearProgressIndicator()
+            Text(text = "Loading...")
+        }
+    }
+    else{
         LazyColumn(modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(8.dp)){
             items(items = listOfBooks){ book ->
@@ -86,7 +90,9 @@ fun ListContainer(book: Item, navController: NavController = NavController(Local
             .fillMaxWidth()
             .height(140.dp)
             .padding(8.dp)
-            .clickable { }) {
+            .clickable {
+                navController.navigate(ReadersScreens.DetailScreen.name + "/${book.id}")
+            }) {
             Row(modifier = Modifier.padding(2.dp),
                 horizontalArrangement = Arrangement.Start) {
                 Image(painter = rememberImagePainter(data = book.volumeInfo.imageLinks.smallThumbnail.ifEmpty { R.drawable.error_pic }),
