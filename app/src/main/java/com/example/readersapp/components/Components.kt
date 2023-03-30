@@ -158,9 +158,9 @@ fun TitleSection(modifier: Modifier = Modifier, label: String){
 }
 
 
-@Preview
+
 @Composable
-fun ListCard(book: MBook = MBook("fhwhdfk", "Slidin", "21 21 21", "it's the BIG STEPPER"),
+fun ListCard(book: MBook,
              onPressDetails: (String) -> Unit = {})
 {
     //Dynamic screen sizing
@@ -185,7 +185,7 @@ fun ListCard(book: MBook = MBook("fhwhdfk", "Slidin", "21 21 21", "it's the BIG 
         Column (modifier = Modifier.width(screenWidth.dp - (spacing * 2)),
             horizontalAlignment = Alignment.Start) {
             Row(horizontalArrangement = Arrangement.Center){
-                Image(painter = rememberImagePainter(data = "http://books.google.com/books/content?id=JGH0DwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"),
+                Image(painter = rememberImagePainter(data = book.photoUrl.toString()),
                     contentDescription = "Book Image",
                     modifier = Modifier
                         .requiredHeight(140.dp)
