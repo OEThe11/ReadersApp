@@ -1,6 +1,10 @@
 package com.example.readersapp.screens.update
 
+import android.content.Context
+import android.os.Build
 import android.util.Log
+import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,10 +15,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -22,21 +23,31 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberImagePainter
+import com.example.readersapp.R
 import com.example.readersapp.components.InputField
+import com.example.readersapp.components.RatingBar
 import com.example.readersapp.components.ReadersAppBar
+import com.example.readersapp.components.RoundedButton
 import com.example.readersapp.data.DataOrException
 import com.example.readersapp.model.MBook
+import com.example.readersapp.navigation.ReadersScreens
 import com.example.readersapp.screens.home.HomeScreenViewModel
+import com.example.readersapp.utils.formatDate
+import com.google.firebase.Timestamp
+import com.google.firebase.firestore.FirebaseFirestore
 
 private const val TAG = "UpdateScreen"
 
+@RequiresApi(Build.VERSION_CODES.N)
 @Composable
 fun UpdateScreen(navController: NavHostController, bookItemId: String,
                  viewModel: HomeScreenViewModel = hiltViewModel()) {
@@ -98,8 +109,11 @@ fun UpdateScreen(navController: NavHostController, bookItemId: String,
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.N)
 @Composable
 fun ShowSimpleForm(book: MBook, navController: NavHostController) {
+
+    val context = LocalContext.current
 
     val notesText = remember{
         mutableStateOf("")
@@ -111,6 +125,10 @@ fun ShowSimpleForm(book: MBook, navController: NavHostController) {
 
     val isFinishedReading = remember{
         mutableStateOf(false)
+    }
+
+    val ratingVal = remember {
+        mutableStateOf(0)
     }
 
     SimpleForm(defaultValue = if (book.notes.toString().isNotEmpty()) book.notes.toString()
@@ -135,7 +153,7 @@ fun ShowSimpleForm(book: MBook, navController: NavHostController) {
                 }
             }
             else{
-              Text(text = "Started on: ${book.startedReading}")
+              Text(text = "Started on: ${formatDate(book.startedReading!!)}")
         }
 
     }
@@ -151,12 +169,79 @@ fun ShowSimpleForm(book: MBook, navController: NavHostController) {
                 }
             }
             else {
-                Text(text = "Finished on: ${book.finishedReading}")
+                Text(text = "Finished on: ${formatDate(book.finishedReading!!)}")
             }
+        }
+    }
+    Text(text = "Rating", modifier = Modifier.padding(bottom = 3.dp))
+    book.rating?.toInt().let {
+        RatingBar(rating = it!!){ rating ->
+            ratingVal.value = rating
+        }
+    }
+    
+    Spacer(modifier = Modifier.padding(bottom = 15.dp))
+    Row {
+        val changeNotes = book.notes != notesText.value
+        val changedRating = book.rating?.toInt() != ratingVal.value
+        val isFinishedTimeStamp = if (isFinishedReading.value) Timestamp.now() else book.finishedReading
+        val isStartedTimeStamp = if (isStartedReading.value) Timestamp.now() else book.startedReading
+
+        val bookUpdate = changeNotes || changedRating || isStartedReading.value || isFinishedReading.value
+
+        val bookToUpdate = hashMapOf(
+            "finished_reading_at" to isFinishedTimeStamp,
+            "started_reading_at"  to isStartedTimeStamp,
+            "rating" to ratingVal.value,
+            "notes" to notesText.value).toMap()
+
+        RoundedButton("Update"){
+            if (bookUpdate){
+                FirebaseFirestore.getInstance()
+                    .collection("books")
+                    .document(book.id!!)
+                    .update(bookToUpdate)
+                    .addOnCompleteListener {
+                        showToast(context, "Book Updated Successfully")
+                        navController.navigate(ReadersScreens.HomeScreen.name)
+
+                    }.addOnFailureListener {
+                        Log.w(TAG, "Error updating document", it)
+                    }
+            }
+        }
+        Spacer(modifier = Modifier.width(25.dp))
+        val openDialog = remember {
+            mutableStateOf(false)
+        }
+        if (openDialog.value){
+            ShowAlertDialog(message = stringResource(id = R.string.sure) + "\n" +
+                stringResource(id = R.string.action), openDialog){
+                FirebaseFirestore.getInstance()
+                    .collection("books")
+                    .document(book.id!!)
+                    .delete()
+                    .addOnCompleteListener {
+                        if (it.isSuccessful){
+                            openDialog.value = false
+
+                            /*
+                            Don't popBackStack() if we want the immediate recomposition
+                            of the MainScreen UI, instead navigate to the mainScreen!
+                             */
+                            navController.navigate(ReadersScreens.HomeScreen.name)
+                        }
+                    }
+            }
+
+        }
+        RoundedButton("Delete"){
+            openDialog.value = true
         }
     }
 
 }
+
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -270,6 +355,39 @@ fun CardListItem(book: MBook, onPressDetails: () -> Unit) {
 
     }
 }
+
+@Composable
+fun ShowAlertDialog(
+    message: String,
+    openDialog: MutableState<Boolean>,
+    onYesPressed: () -> Unit
+) {
+    if (openDialog.value){
+        AlertDialog(onDismissRequest = { openDialog.value = false },
+                    title = { Text (text = "Delete Book") },
+                    text = { Text(text = message) },
+                    buttons = {
+                        Row(modifier = Modifier.padding(8.dp),
+                            horizontalArrangement = Arrangement.Center) {
+                            TextButton(onClick = { onYesPressed.invoke() }) {
+                                Text(text = "Yes")
+                            }
+                            TextButton(onClick = { openDialog.value = false }) {
+                                Text(text = "No")
+                            }
+                        }
+                    })
+            
+        }
+    }
+
+
+
+fun showToast(context: Context, msg: String) {
+    Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+}
+
+
 
 
 

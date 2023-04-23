@@ -100,7 +100,7 @@ fun HomeContent(navController: NavController, viewModel: HomeScreenViewModel) {
             }
         }
 
-//        ReadingRightNowArea(books = listOf(), navController = navController)
+        ReadingRightNowArea(listOfBooks = listOfBooks, navController = navController)
         
         TitleSection(label = "Reading List")
 
@@ -138,17 +138,17 @@ fun HorizontalScrollableComponent(listOfBooks: List<MBook>, onCardPressed: (Stri
 
 @Composable
 fun ReadingRightNowArea(listOfBooks: List<MBook>, navController: NavController){
-//    ListCard(book = listOfBooks)
+
     
-//    //Filter books by reading now
-//    val readingNowList = listOfBooks.filter { mBook ->
-//        mBook.startedReading != null && mBook.finishedReading == null
-//    }
-//
-//    HorizontalScrollableComponent(readingNowList){
-//        Log.d("TAG", "BoolListArea: $it")
-//        navController.navigate(ReaderScreens.UpdateScreen.name + "/$it")
-//    }
+    //Filter books by reading now
+    val readingNowList = listOfBooks.filter { mBook ->
+        mBook.startedReading != null && mBook.finishedReading == null
+    }
+
+    HorizontalScrollableComponent(readingNowList){
+        Log.d("TAG", "BoolListArea: $it")
+        navController.navigate(ReadersScreens.UpdateScreen.name + "/$it")
+    }
 
 }
 
