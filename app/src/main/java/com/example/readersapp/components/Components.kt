@@ -207,7 +207,7 @@ fun ListCard(book: MBook,
                         contentDescription = "Fav Icon",
                         modifier = Modifier.padding(bottom = 1.dp))
 
-                    BookRating(score = 3.5)
+                    BookRating(score = book.rating!!)
                 }
             }
             Text(text = book.title.toString(),
@@ -219,9 +219,16 @@ fun ListCard(book: MBook,
             Text(text = book.authors.toString(), modifier = Modifier.padding(4.dp),
                 style = MaterialTheme.typography.caption)
         }
+        val isStartedReading = remember {
+            mutableStateOf(false)
+        }
+
         Row(horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.Bottom){
-            RoundedButton(label = "Reading", radius = 70)
+            isStartedReading.value = book.startedReading != null
+
+            RoundedButton(label = if (isStartedReading.value) "Reading" else "Not Started",
+                radius = 70)
         }
     }
 

@@ -11,6 +11,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -110,13 +112,20 @@ fun HomeContent(navController: NavController, viewModel: HomeScreenViewModel) {
 
 @Composable
 fun BookListArea(listOfBooks: List<MBook>, navController: NavController) {
+
+    val addedBooks = listOfBooks.filter { mBook ->
+        mBook.startedReading == null && mBook.finishedReading == null
+    }
+
     HorizontalScrollableComponent(listOfBooks){
       navController.navigate(ReadersScreens.UpdateScreen.name + "/$it")
     }
 }
 
 @Composable
-fun HorizontalScrollableComponent(listOfBooks: List<MBook>, onCardPressed: (String) -> Unit) {
+fun HorizontalScrollableComponent(listOfBooks: List<MBook>,
+                                  viewModel: HomeScreenViewModel = hiltViewModel(),
+                                  onCardPressed: (String) -> Unit) {
 
     val scrollState = rememberScrollState()
 
@@ -124,11 +133,27 @@ fun HorizontalScrollableComponent(listOfBooks: List<MBook>, onCardPressed: (Stri
         .fillMaxWidth()
         .heightIn(280.dp)
         .horizontalScroll(scrollState)) {
+        if (viewModel.data.value.loading == true){
+            LinearProgressIndicator()
+        }
+        else{
+            if (listOfBooks.isNullOrEmpty()){
+                Surface(modifier = Modifier.padding(23.dp)) {
+                    Text(text = "No books found. Add a Book",
+                        style = TextStyle(
+                            color = Color.Red.copy(alpha = 0.4f),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp)
+                        )
+                }
+            }
+            else{
+                for (book in listOfBooks){
+                    ListCard(book){
+                        onCardPressed(book.googleBookId.toString())
 
-        for (book in listOfBooks){
-            ListCard(book){
-                onCardPressed(book.googleBookId.toString())
-
+                    }
+                }
             }
         }
     }
